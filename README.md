@@ -12,32 +12,40 @@
 - **HTML报告**: 生成详细的HTML测试报告
 - **并行执行**: 支持多线程并行测试
 - **参数化测试**: 支持数据驱动测试
+- **模块化架构**: 代码结构清晰，功能模块化，便于维护和扩展
 
 ## 📁 项目结构
 
 ```
 CRM/
-├── config/                 # 配置文件目录
-│   ├── __init__.py
-│   ├── config.py          # 项目配置
-│   └── locators.py        # 页面元素定位器
-├── pages/                 # 页面对象目录
-│   ├── __init__.py
-│   ├── base_page.py       # 基础页面类
-│   └── login_page.py      # 登录页面类
-├── tests/                 # 测试用例目录
-│   ├── __init__.py
-│   ├── conftest.py        # pytest配置
-│   └── test_login.py      # 登录功能测试
-├── utils/                 # 工具类目录
-│   ├── __init__.py
-│   ├── driver_manager.py  # WebDriver管理器
-│   └── common_utils.py    # 通用工具类
-├── reports/               # 测试报告目录
-├── screenshots/           # 截图目录
-├── requirements.txt       # 项目依赖
-├── pytest.ini           # pytest配置文件
-└── README.md             # 项目说明文档
+├── 🚀 核心模块化文件
+│   ├── main.py                     # 主入口文件
+│   ├── crm_utils.py               # 工具函数模块
+│   ├── crm_login.py               # 登录功能模块
+│   ├── crm_role_switch.py         # 职位切换功能模块
+│   ├── crm_private_sea.py         # 私海线索操作模块
+│   └── crm_workflow.py            # 主工作流程模块
+│
+├── 🧪 测试相关
+│   ├── test_modules.py            # 模块化测试脚本
+│   ├── run_tests.py               # Pytest运行脚本
+│   ├── pytest.ini                # Pytest配置
+│   └── tests/                     # Pytest测试目录
+│
+├── 📚 框架结构
+│   ├── config/                    # 配置文件
+│   ├── pages/                     # Page Object模式页面对象
+│   ├── utils/                     # 工具函数
+│   └── reports/                   # 测试报告目录
+│
+├── 📖 文档
+│   ├── README.md                  # 项目说明
+│   ├── CRM_MODULE_README.md       # 模块化说明
+│   └── CLEANUP_SUMMARY.md         # 代码清理总结
+│
+└── 📸 其他
+    ├── requirements.txt           # 依赖包
+    └── screenshots/               # 截图目录
 ```
 
 ## 🛠️ 环境要求
@@ -50,7 +58,7 @@ CRM/
 ### 1. 克隆项目
 
 ```bash
-git clone <项目地址>
+git clone https://github.com/sandogdog/CRM.git
 cd CRM
 ```
 
@@ -80,9 +88,19 @@ pip install -r requirements.txt
 - **TEST_USERS**: 测试用户账号信息
 - **浏览器设置**: 默认浏览器类型、窗口大小等
 
-## 🏃‍♂️ 运行测试
+## 🏃‍♂️ 快速开始
 
-### 基本运行
+### 🚀 运行模块化自动化流程（推荐）
+
+```bash
+# 运行完整自动化流程：登录 → 职位切换 → 私海线索 → 快速跟进
+python main.py
+
+# 测试模块化是否正常工作
+python test_modules.py
+```
+
+### 🧪 运行传统测试框架
 
 ```bash
 # 运行所有测试
@@ -93,6 +111,9 @@ pytest tests/test_login.py
 
 # 运行指定测试方法
 pytest tests/test_login.py::TestLogin::test_successful_login_with_admin
+
+# 使用测试运行脚本
+python run_tests.py --action all
 ```
 
 ### 标记测试
@@ -208,6 +229,24 @@ IMPLICIT_WAIT = 10         # 隐式等待时间
 EXPLICIT_WAIT = 20         # 显式等待时间
 ```
 
+## ✨ 模块化架构特性
+
+### 新的模块化架构优势
+
+- **代码结构清晰**: 从700行单一文件拆分为多个专门模块
+- **易于维护**: 每个模块专注特定功能
+- **代码重用**: 各模块可单独调用
+- **易于测试**: 可以单独测试每个功能
+- **扩展性强**: 可以轻松添加新功能模块
+
+### 模块说明
+
+- `crm_utils.py`: 工具函数（随机数据生成、浏览器初始化）
+- `crm_login.py`: SSO登录功能
+- `crm_role_switch.py`: 用户职位切换功能
+- `crm_private_sea.py`: 私海线索操作和快速跟进功能
+- `crm_workflow.py`: 集成所有功能的完整工作流程
+
 ## 📝 编写测试用例
 
 ### 1. 创建页面对象
@@ -298,6 +337,7 @@ A: 框架使用 `webdriver-manager` 自动下载驱动，确保网络连接正�
 4. **断言**: 使用有意义的断言信息
 5. **日志**: 在关键步骤记录日志信息
 6. **截图**: 测试失败时自动截图便于调试
+7. **模块化**: 将功能拆分为独立模块，提高代码可维护性
 
 ## 🤝 贡献指南
 
@@ -313,4 +353,5 @@ MIT License
 
 ## 📞 联系方式
 
- 
+- GitHub: [@sandogdog](https://github.com/sandogdog)
+- 项目地址: [https://github.com/sandogdog/CRM](https://github.com/sandogdog/CRM)
