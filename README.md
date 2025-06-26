@@ -1,6 +1,14 @@
 # CRM UI自动化测试框架
 
-基于Python + Selenium的CRM系统UI自动化测试框架，采用页面对象模式(POM)设计，支持多浏览器、多环境测试。
+基于Python + Selenium的CRM系统UI自动化测试框架，采用**模块化架构**设计，支持多浏览器、多环境测试。
+
+## 🎯 项目特点
+
+- **🔥 全新模块化架构**：将大型单体文件拆分为专门的功能模块，提高可维护性
+- **⚡ 简化的交互界面**：新版main.py提供4个清晰的功能选择
+- **🔄 向后兼容性**：保持所有原有API不变，可以无缝迁移
+- **🧪 独立测试能力**：每个模块都可以独立测试和使用
+- **📝 完整的业务流程**：涵盖登录、角色切换、线索管理、跟进等完整CRM操作
 
 ## 🚀 功能特性
 
@@ -18,34 +26,38 @@
 
 ```
 CRM/
-├── 🚀 核心模块化文件
-│   ├── main.py                     # 主入口文件
-│   ├── crm_utils.py               # 工具函数模块
-│   ├── crm_login.py               # 登录功能模块
-│   ├── crm_role_switch.py         # 职位切换功能模块
-│   ├── crm_private_sea.py         # 私海线索操作模块
-│   └── crm_workflow.py            # 主工作流程模块
+├── 🚀 核心模块（新架构）
+│   ├── main.py                      # 主入口文件（简化菜单）
+│   ├── crm_login.py                # 登录功能模块
+│   ├── crm_role_switch.py          # 角色切换功能模块
+│   ├── crm_utils.py                # 工具函数模块
+│   ├── crm_private_sea_add.py      # 线索添加模块
+│   ├── crm_private_sea_launch.py   # 投放模块
+│   ├── crm_private_sea_follow_up.py # 快速跟进模块
+│   ├── crm_workflow.py             # 工作流程编排
+│   └── crm_private_sea.py          # 向后兼容层
 │
-├── 🧪 测试相关
-│   ├── test_modules.py            # 模块化测试脚本
-│   ├── run_tests.py               # Pytest运行脚本
-│   ├── pytest.ini                # Pytest配置
-│   └── tests/                     # Pytest测试目录
+├── 🧪 测试和验证
+│   ├── test_modules.py             # 模块测试脚本
+│   ├── auto_run.py                 # 自动化执行包装器
+│   ├── run_tests.py                # Pytest运行脚本（传统）
+│   ├── pytest.ini                 # Pytest配置
+│   └── tests/                      # Pytest测试目录
 │
-├── 📚 框架结构
-│   ├── config/                    # 配置文件
-│   ├── pages/                     # Page Object模式页面对象
-│   ├── utils/                     # 工具函数
-│   └── reports/                   # 测试报告目录
+├── 📚 传统框架（保留兼容）
+│   ├── config/                     # 配置文件
+│   ├── pages/                      # Page Object模式页面对象
+│   ├── utils/                      # 原版工具函数
+│   └── reports/                    # 测试报告目录
 │
 ├── 📖 文档
-│   ├── README.md                  # 项目说明
-│   ├── CRM_MODULE_README.md       # 模块化说明
-│   └── CLEANUP_SUMMARY.md         # 代码清理总结
+│   ├── README.md                   # 项目说明（本文件）
+│   ├── CLEANUP_SUMMARY.md          # 模块化重构总结
+│   └── PROJECT_CLEANUP_PLAN.md     # 项目清理计划
 │
-└── 📸 其他
-    ├── requirements.txt           # 依赖包
-    └── screenshots/               # 截图目录
+└── 📸 输出
+    ├── requirements.txt            # 依赖包
+    └── screenshots/                # 截图目录
 ```
 
 ## 🛠️ 环境要求
@@ -90,17 +102,53 @@ pip install -r requirements.txt
 
 ## 🏃‍♂️ 快速开始
 
-### 🚀 运行模块化自动化流程（推荐）
+### 🚀 新版模块化架构（推荐）
+
+使用全新的模块化架构，功能清晰，易于维护：
 
 ```bash
-# 运行完整自动化流程：登录 → 职位切换 → 私海线索 → 快速跟进
+# 运行主程序（推荐）
 python main.py
-
-# 测试模块化是否正常工作
-python test_modules.py
 ```
 
+**提供4种测试选择：**
+1. **测试私海线索添加功能** - 登录 → 角色切换 → 导航 → 添加线索
+2. **测试私海线索投放功能** - 完整流程 + 投放操作
+3. **测试私海线索快速跟进功能** - 完整流程 + 快速跟进 + 跟进面板 + 报价单
+4. **测试所有私海线索功能** - 包含所有功能的完整测试
+
+**模块化使用示例：**
+```python
+# 直接导入需要的模块
+from crm_private_sea_add import add_private_sea_clue
+from crm_private_sea_follow_up import complete_follow_up_process
+
+# 或者使用向后兼容方式
+from crm_private_sea import add_private_sea_clue, complete_follow_up_process
+```
+
+### 🔧 自动化模式
+
+完全自动化执行，适合生产环境：
+
+```bash
+# 使用简化的自动化入口
+python auto_run.py
+```
+
+**自动化流程包含：**
+1. ✅ SSO登录
+2. ✅ 职位切换  
+3. ✅ 私海线索页面导航
+4. ✅ 添加私海线索
+5. ✅ 投放操作
+6. ✅ 快速跟进按钮点击
+7. ✅ 跟进面板配置（电话/商机转化）
+8. ✅ 报价单填写
+
 ### 🧪 运行传统测试框架
+
+保持向后兼容，仍支持原有的测试方式：
 
 ```bash
 # 运行所有测试
@@ -108,9 +156,6 @@ pytest
 
 # 运行指定测试文件
 pytest tests/test_login.py
-
-# 运行指定测试方法
-pytest tests/test_login.py::TestLogin::test_successful_login_with_admin
 
 # 使用测试运行脚本
 python run_tests.py --action all

@@ -34,9 +34,15 @@ def test_module_imports():
         from crm_role_switch import switch_role_fixed_v2
         print("✅ crm_role_switch 模块导入成功")
         
-        # 测试私海线索模块
-        from crm_private_sea import add_private_sea_clue, click_quick_follow_up
-        print("✅ crm_private_sea 模块导入成功")
+        # 测试私海线索模块（新版本模块化）
+        from crm_private_sea_add import add_private_sea_clue, navigate_to_private_sea
+        print("✅ crm_private_sea_add 模块导入成功")
+        
+        from crm_private_sea_launch import handle_launch_operation
+        print("✅ crm_private_sea_launch 模块导入成功")
+        
+        from crm_private_sea_follow_up import click_quick_follow_up, complete_follow_up_process
+        print("✅ crm_private_sea_follow_up 模块导入成功")
         
         # 测试工作流程模块
         from crm_workflow import login_and_complete_workflow, login_and_switch_role_fixed_v2, test_quick_follow_up_only
