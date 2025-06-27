@@ -741,18 +741,31 @@ def _claim_customer_from_table(driver):
         return { success: false, error: '未找到操作下拉菜单' };
     }
     
-    // 查找操作按钮
-    var operationButton = dropdown.querySelector('button.el-button--info');
-    if (!operationButton) {
-        console.log('未找到操作按钮');
-        return { success: false, error: '未找到操作按钮' };
+    // 查找下拉箭头按钮（关键修复：应该点击带箭头的按钮而不是"操作"按钮）
+    var dropdownButton = dropdown.querySelector('button.el-dropdown__caret-button');
+    if (!dropdownButton) {
+        // 备用方案：查找第二个按钮
+        var buttons = dropdown.querySelectorAll('button.el-button--info');
+        if (buttons.length >= 2) {
+            dropdownButton = buttons[1]; // 使用第二个按钮
+            console.log('使用第二个按钮作为下拉按钮');
+        } else {
+            // 最后备用方案：使用第一个按钮
+            dropdownButton = dropdown.querySelector('button.el-button--info');
+            console.log('使用第一个按钮作为备用下拉按钮');
+        }
     }
     
-    console.log('找到操作按钮，准备点击');
+    if (!dropdownButton) {
+        console.log('未找到下拉按钮');
+        return { success: false, error: '未找到下拉按钮' };
+    }
     
-    // 点击操作按钮展开下拉菜单
-    operationButton.click();
-    console.log('操作按钮已点击，下拉菜单应该展开');
+    console.log('找到下拉按钮，准备点击');
+    
+    // 点击下拉按钮展开菜单
+    dropdownButton.click();
+    console.log('下拉按钮已点击，菜单应该展开');
     
     return { success: true, step: 'dropdown_opened' };
     """
@@ -771,10 +784,12 @@ def _claim_customer_from_table(driver):
     logger.info("🎯 点击领取客户菜单项...")
     
     js_click_claim_menu = """
-    // 查找下拉菜单项
-    var dropdownMenus = document.querySelectorAll('.el-dropdown-menu');
+    // 增强的菜单项查找逻辑
     var claimMenuItem = null;
+    var allMenuTexts = [];
     
+    // 方法1：查找下拉菜单项
+    var dropdownMenus = document.querySelectorAll('.el-dropdown-menu');
     console.log('找到下拉菜单数量:', dropdownMenus.length);
     
     // 查找可见的下拉菜单
@@ -782,7 +797,10 @@ def _claim_customer_from_table(driver):
         var menu = dropdownMenus[i];
         var style = window.getComputedStyle(menu);
         
-        if (style.display !== 'none' && style.visibility !== 'hidden') {
+        console.log('菜单', i, '显示状态:', style.display, '可见性:', style.visibility);
+        
+        // 更宽松的可见性检查
+        if (style.display !== 'none') {
             console.log('找到可见的下拉菜单');
             
             // 在菜单中查找"领取客户"项
@@ -793,6 +811,7 @@ def _claim_customer_from_table(driver):
                 var item = menuItems[j];
                 var itemText = item.textContent.trim();
                 console.log('菜单项', j, '文本:', itemText);
+                allMenuTexts.push(itemText);
                 
                 if (itemText === '领取客户') {
                     console.log('找到领取客户菜单项');
@@ -805,9 +824,45 @@ def _claim_customer_from_table(driver):
         }
     }
     
+    // 方法2：如果方法1失败，尝试查找所有可能的菜单项
     if (!claimMenuItem) {
-        console.log('未找到领取客户菜单项');
-        return { success: false, error: '未找到领取客户菜单项' };
+        console.log('方法1失败，尝试方法2：查找所有li元素');
+        var allLiElements = document.querySelectorAll('li');
+        
+        for (var k = 0; k < allLiElements.length; k++) {
+            var li = allLiElements[k];
+            var liText = li.textContent.trim();
+            
+            if (liText === '领取客户' && li.className.includes('dropdown-menu__item')) {
+                console.log('通过方法2找到领取客户菜单项');
+                claimMenuItem = li;
+                break;
+            }
+        }
+    }
+    
+    // 方法3：最后尝试直接查找包含"领取客户"文本的元素
+    if (!claimMenuItem) {
+        console.log('方法2失败，尝试方法3：直接查找包含文本的元素');
+        var allElements = document.querySelectorAll('*');
+        
+        for (var m = 0; m < allElements.length; m++) {
+            var element = allElements[m];
+            var elementText = element.textContent.trim();
+            
+            if (elementText === '领取客户' && 
+                (element.tagName === 'LI' || element.className.includes('menu'))) {
+                console.log('通过方法3找到领取客户菜单项');
+                claimMenuItem = element;
+                break;
+            }
+        }
+    }
+    
+    if (!claimMenuItem) {
+        console.log('所有方法都失败：未找到领取客户菜单项');
+        console.log('所有找到的菜单项:', allMenuTexts);
+        return { success: false, error: '未找到领取客户菜单项', allMenus: allMenuTexts };
     }
     
     // 点击领取客户菜单项

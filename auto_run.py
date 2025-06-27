@@ -1,50 +1,41 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 """
-CRM自动化测试 - 自动化执行入口（简化版）
-专门用于生产环境的完全自动化执行，无需人工干预
-
-此文件现在是main.py的简化包装器，避免代码重复。
-如果需要完整的交互式功能，请直接使用 main.py
-
-使用方法：
-python auto_run.py
+CRM自动化测试 - 自动运行脚本
+直接执行完整的CRM业务流程，无需用户选择
 """
+
 import sys
 import os
-import subprocess
 
-def main():
-    """自动化执行主函数 - 调用main.py的完整流程"""
-    print("=" * 80)
-    print("🚀 CRM自动化测试 - 完全自动化执行")
-    print("=" * 80)
-    print("🎯 自动执行完整业务流程测试")
-    print("⚡ 调用main.py的完整流程功能")
-    print("")
-    
-    try:
-        # 调用main.py，并自动选择完整流程（选项4）
-        print("🔄 启动main.py...")
-        
-        # 这里可以通过环境变量或参数来控制main.py的行为
-        # 暂时保持简单，提示用户使用main.py
-        print("💡 建议直接运行：python main.py")
-        print("   然后选择 '4️⃣ 测试所有私海线索功能（完整流程）'")
-        print("")
-        print("🔧 如需完全自动化，请在main.py中添加命令行参数支持")
-        
-        return 0
-        
-    except Exception as e:
-        print(f"❌ 执行异常: {e}")
-        return 1
-    
-    finally:
-        print("=" * 80)
-        print("🏁 auto_run.py 执行完毕")
-        print("💡 提示：建议直接使用 main.py 获得更好的体验")
-        print("=" * 80)
+# 添加项目根目录到Python路径
+sys.path.append(os.path.dirname(os.path.abspath(__file__)))
 
+# 导入主程序
+from main import test_complete_crm_workflow
 
 if __name__ == "__main__":
-    sys.exit(main()) 
+    print("🚀 CRM自动化测试 - 自动运行模式")
+    print("=" * 60)
+    print("📋 将自动执行完整CRM业务流程：")
+    print("   1️⃣ 添加线索")
+    print("   2️⃣ 线索的投放和领取")
+    print("   3️⃣ 线索的快速跟进（按钮+面板+报价单）")
+    print("   4️⃣ 商机的投放和领取")
+    print("   5️⃣ 客户的投放和领取")
+    print("=" * 60)
+    
+    try:
+        # 直接执行完整流程
+        success = test_complete_crm_workflow()
+        
+        if success:
+            print("\n🎉 完整CRM业务流程自动测试成功！")
+            print("💡 浏览器已自动关闭")
+        else:
+            print("\n❌ 完整CRM业务流程自动测试失败！")
+            print("💡 请查看日志文件 crm_test.log 获取详细错误信息")
+            
+    except KeyboardInterrupt:
+        print("\n👋 用户中断测试")
+    except Exception as e:
+        print(f"\n❌ 自动测试异常: {e}") 

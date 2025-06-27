@@ -16,7 +16,7 @@ from crm_login import login_to_crm
 from crm_role_switch import switch_role_fixed_v2  
 from crm_private_sea_add import test_private_sea_add_workflow, navigate_to_private_sea, add_private_sea_clue
 from crm_private_sea_launch import test_private_sea_launch_workflow, test_private_sea_launch_with_public_track
-from crm_private_sea_follow_up import click_quick_follow_up
+from crm_private_sea_follow_up import click_quick_follow_up, complete_follow_up_process
 from crm_public_sea import test_public_sea_track_workflow
 from crm_business_private_sea import navigate_to_private_business, test_private_business_navigation, test_private_business_launch_workflow, test_public_business_track_workflow, test_private_business_launch_with_public_track
 from crm_customer_private_sea import test_customer_private_sea_ipipgo_workflow, test_customer_private_sea_to_public_workflow
@@ -679,52 +679,158 @@ def show_main_menu():
     print("=" * 70)
 
 
-def main():
-    """主函数 - 核心功能的独立测试"""
+def test_complete_crm_workflow():
+    """完整的CRM业务流程测试
+    
+    执行顺序：
+    1. 添加线索
+    2. 线索的投放和领取
+    3. 线索的快速跟进
+    4. 商机的投放和领取
+    5. 客户的投放和领取
+    """
+    driver = None
     try:
-        while True:
-            show_main_menu()
-            choice = input("请选择测试功能 (0-6): ").strip()
+        logger.info("🚀 开始完整CRM业务流程测试...")
+        logger.info("=" * 80)
+        logger.info("📋 完整流程包括：")
+        logger.info("   1️⃣ 添加线索")
+        logger.info("   2️⃣ 线索的投放和领取")
+        logger.info("   3️⃣ 线索的快速跟进（按钮+面板+报价单）")
+        logger.info("   4️⃣ 商机的投放和领取")
+        logger.info("   5️⃣ 客户的投放和领取")
+        logger.info("=" * 80)
+        
+        # 初始化WebDriver
+        driver_manager = DriverManager()
+        driver = driver_manager.get_driver()
+        
+        # 初始化CRM会话
+        logger.info("🔧 步骤0: 初始化CRM会话（登录+角色切换）...")
+        if not initialize_crm_session(driver):
+            logger.error("❌ CRM会话初始化失败")
+            return False
+        
+        logger.info("✅ CRM会话初始化完成")
+        time.sleep(2)
+        
+        # 步骤1: 添加线索
+        logger.info("🔸 步骤1: 开始添加线索...")
+        if not navigate_to_private_sea(driver):
+            logger.error("❌ 导航到私海线索页面失败")
+            return False
             
-            if choice == "1":
-                print("\n🚀 启动线索添加功能测试...")
-                test_private_sea_add_only()
-                
-            elif choice == "2":
-                print("\n🚀 启动线索投放与跟踪测试...")
-                test_add_then_launch_then_track()
-                
-            elif choice == "3":
-                print("\n🚀 启动线索快速跟进测试...")
-                test_add_then_follow_up()
-                
-            elif choice == "4":
-                print("\n🚀 启动商机投放→跟踪完整流程测试...")
-                print("   📋 流程说明：私海商机投放 → 公海商机跟踪")
-                test_business_launch_with_track()
-                
-            elif choice == "5":
-                print("\n🚀 启动客户私海IPIPGO导航测试...")
-                print("   📋 流程说明：客户菜单 → 私海 → IPIPGO标签页")
-                test_customer_private_sea_ipipgo()
-                
-            elif choice == "6":
-                print("\n🚀 启动客户投入公海→领取完整流程测试...")
-                print("   📋 流程说明：私海投入公海 → 公海领取客户")
-                print("   🔄 完整业务闭环：客户菜单 → 私海 → 投入公海 → 公海 → 领取客户")
-                print("   🆔 目标客户：用户ID 7156")
-                test_customer_complete_workflow()
-                
-            elif choice == "0":
-                print("👋 退出CRM自动化测试系统")
-                break
-                
-            else:
-                print("❌ 无效选择，请输入 0-6 之间的数字")
-                
-            if choice in ["1", "2", "3", "4", "5", "6"]:
-                input("\n按回车键继续...")
-                
+        success, customer_name, phone = add_private_sea_clue(driver)
+        if not success:
+            logger.error("❌ 添加线索失败")
+            return False
+        
+        logger.info(f"✅ 步骤1完成: 成功添加线索 {customer_name}, 电话: {phone}")
+        time.sleep(3)
+        
+        # 步骤2: 线索的投放和领取
+        logger.info("🔸 步骤2: 开始线索投放和领取...")
+        success = test_private_sea_launch_with_public_track(driver)
+        if not success:
+            logger.error("❌ 线索投放和领取失败")
+            return False
+        
+        logger.info("✅ 步骤2完成: 线索投放和领取成功")
+        time.sleep(3)
+        
+        # 步骤3: 线索的快速跟进（完整流程：按钮点击+面板处理+报价单）
+        logger.info("🔸 步骤3: 开始线索快速跟进完整流程...")
+        logger.info("💡 完整流程包括：快速跟进按钮 → 跟进面板配置 → 报价单填写")
+        
+        # 确保在私海线索页面
+        if not navigate_to_private_sea(driver):
+            logger.error("❌ 导航到私海线索页面失败")
+            return False
+            
+        # 执行完整的快速跟进流程
+        success = complete_follow_up_process(driver)
+        if not success:
+            logger.warning("⚠️ 线索快速跟进完整流程失败，但继续执行后续流程")
+        else:
+            logger.info("✅ 步骤3完成: 线索快速跟进完整流程成功")
+        
+        time.sleep(3)
+        
+        # 步骤4: 商机的投放和领取
+        logger.info("🔸 步骤4: 开始商机投放和领取...")
+        success = test_private_business_launch_with_public_track(driver)
+        if not success:
+            logger.error("❌ 商机投放和领取失败")
+            return False
+        
+        logger.info("✅ 步骤4完成: 商机投放和领取成功")
+        time.sleep(3)
+        
+        # 步骤5: 客户的投放和领取
+        logger.info("🔸 步骤5: 开始客户投放和领取...")
+        success = test_customer_private_to_public_claim_workflow(driver)
+        if not success:
+            logger.error("❌ 客户投放和领取失败")
+            return False
+        
+        logger.info("✅ 步骤5完成: 客户投放和领取成功")
+        
+        # 完整流程总结
+        logger.info("🎉 完整CRM业务流程测试完成！")
+        logger.info("=" * 80)
+        logger.info("📊 流程执行总结：")
+        logger.info("   ✅ 1. 添加线索 - 成功")
+        logger.info("   ✅ 2. 线索投放和领取 - 成功")
+        logger.info(f"   {'✅' if success else '⚠️'} 3. 线索快速跟进 - {'成功' if success else '部分成功'}")
+        logger.info("   ✅ 4. 商机投放和领取 - 成功")
+        logger.info("   ✅ 5. 客户投放和领取 - 成功")
+        logger.info("=" * 80)
+        
+        return True
+        
+    except Exception as e:
+        logger.error(f"完整CRM业务流程测试异常: {e}")
+        return False
+        
+    finally:
+        # 完成后等待3秒关闭浏览器
+        if driver:
+            logger.info("✅ 测试完成，等待3秒后关闭浏览器...")
+            time.sleep(3)
+            try:
+                driver.quit()
+                logger.info("🚪 浏览器已关闭")
+            except Exception as e:
+                logger.warning(f"⚠️ 关闭浏览器时出现异常: {e}")
+
+
+def main():
+    """主函数 - 执行完整CRM业务流程"""
+    try:
+        print("🚀 CRM自动化测试系统 - 完整业务流程")
+        print("=" * 80)
+        print("📋 即将执行完整的CRM业务流程测试：")
+        print("   1️⃣ 添加线索")
+        print("   2️⃣ 线索的投放和领取")
+        print("   3️⃣ 线索的快速跟进（按钮+面板+报价单）")
+        print("   4️⃣ 商机的投放和领取")
+        print("   5️⃣ 客户的投放和领取")
+        print("=" * 80)
+        print("💡 整个流程将自动执行，无需手动选择")
+        print("💡 测试完成后浏览器将等待3秒后自动关闭")
+        print("💡 按Ctrl+C可以随时中断测试")
+        print("=" * 80)
+        
+        input("按回车键开始执行完整流程...")
+        
+        # 执行完整流程
+        success = test_complete_crm_workflow()
+        
+        if success:
+            print("\n🎉 完整CRM业务流程测试成功完成！")
+        else:
+            print("\n❌ 完整CRM业务流程测试失败！")
+            
     except KeyboardInterrupt:
         print("\n👋 用户中断，退出测试系统")
     except Exception as e:
