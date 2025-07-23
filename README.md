@@ -9,18 +9,20 @@
 - **🔄 向后兼容性**：保持所有原有API不变，可以无缝迁移
 - **🧪 独立测试能力**：每个模块都可以独立测试和使用
 - **📝 完整的业务流程**：涵盖登录、角色切换、线索管理、跟进等完整CRM操作
+- **🎨 全流程截图记录**：每个关键步骤都有截图记录，便于问题追踪和流程验证
 
 ## 🚀 功能特性
 
 - **页面对象模式(POM)**: 良好的代码组织结构，易于维护
 - **多浏览器支持**: 支持Chrome、Firefox、Edge浏览器
 - **多环境配置**: 支持开发、测试、预发布、生产环境
-- **自动截图**: 测试失败时自动截图
+- **自动截图**: 测试失败时自动截图，关键流程节点截图记录
 - **详细日志**: 完整的测试执行日志记录
 - **HTML报告**: 生成详细的HTML测试报告
 - **并行执行**: 支持多线程并行测试
 - **参数化测试**: 支持数据驱动测试
 - **模块化架构**: 代码结构清晰，功能模块化，便于维护和扩展
+- **完整业务覆盖**: 支持私海/公海线索管理、客户管理、商机跟进等完整业务流程
 
 ## 📁 项目结构
 
@@ -31,9 +33,13 @@ CRM/
 │   ├── crm_login.py                # 登录功能模块
 │   ├── crm_role_switch.py          # 角色切换功能模块
 │   ├── crm_utils.py                # 工具函数模块
-│   ├── crm_private_sea_add.py      # 线索添加模块
-│   ├── crm_private_sea_launch.py   # 投放模块
-│   ├── crm_private_sea_follow_up.py # 快速跟进模块
+│   ├── crm_private_sea_add.py      # 私海线索添加模块
+│   ├── crm_private_sea_launch.py   # 私海线索投放模块
+│   ├── crm_private_sea_follow_up.py # 私海快速跟进模块
+│   ├── crm_public_sea.py           # 公海线索管理模块
+│   ├── crm_customer_private_sea.py # 客户私海管理模块
+│   ├── crm_customer_public_sea.py  # 客户公海管理模块
+│   ├── crm_business_private_sea.py # 商机私海管理模块
 │   ├── crm_workflow.py             # 工作流程编排
 │   └── crm_private_sea.py          # 向后兼容层
 │
@@ -53,11 +59,13 @@ CRM/
 ├── 📖 文档
 │   ├── README.md                   # 项目说明（本文件）
 │   ├── CLEANUP_SUMMARY.md          # 模块化重构总结
+│   ├── FINAL_CLEANUP_SUMMARY.md    # 最终清理总结
 │   └── PROJECT_CLEANUP_PLAN.md     # 项目清理计划
 │
 └── 📸 输出
     ├── requirements.txt            # 依赖包
-    └── screenshots/                # 截图目录
+    ├── screenshots/                # 自动截图目录（包含完整业务流程截图）
+    └── crm_test.log               # 运行日志文件
 ```
 
 ## 🛠️ 环境要求
@@ -117,11 +125,20 @@ python main.py
 3. **测试私海线索快速跟进功能** - 完整流程 + 快速跟进 + 跟进面板 + 报价单
 4. **测试所有私海线索功能** - 包含所有功能的完整测试
 
+**完整业务流程覆盖：**
+- ✅ 私海线索管理（添加、投放、跟进）
+- ✅ 公海线索管理（认领、跟踪）
+- ✅ 客户管理（私海/公海客户处理）
+- ✅ 商机管理（私海商机跟进）
+- ✅ 完整的业务流程自动化测试
+
 **模块化使用示例：**
 ```python
 # 直接导入需要的模块
 from crm_private_sea_add import add_private_sea_clue
 from crm_private_sea_follow_up import complete_follow_up_process
+from crm_public_sea import handle_public_sea_operations
+from crm_customer_private_sea import handle_customer_private_sea
 
 # 或者使用向后兼容方式
 from crm_private_sea import add_private_sea_clue, complete_follow_up_process
@@ -145,6 +162,9 @@ python auto_run.py
 6. ✅ 快速跟进按钮点击
 7. ✅ 跟进面板配置（电话/商机转化）
 8. ✅ 报价单填写
+9. ✅ 公海线索管理
+10. ✅ 客户管理流程
+11. ✅ 商机跟进流程
 
 ### 🧪 运行传统测试框架
 
@@ -224,13 +244,47 @@ pytest --alluredir=reports/allure-results
 allure serve reports/allure-results
 ```
 
-## 📊 测试报告
+## 📊 测试报告与截图
 
-测试执行完成后，可以查看以下报告：
+测试执行完成后，可以查看以下报告和截图：
 
+### 📋 测试报告
 - **HTML报告**: `reports/report.html`
-- **测试日志**: `test.log`
-- **失败截图**: `screenshots/` 目录下的PNG文件
+- **测试日志**: `crm_test.log`
+- **执行日志**: `webdriver_download.log`
+
+### 📸 自动截图记录
+所有关键业务流程都有截图记录，位于 `screenshots/` 目录：
+
+**私海业务流程截图：**
+- `private_sea_page_loaded.png` - 私海页面加载完成
+- `private_sea_clue_added.png` - 私海线索添加成功
+- `launch_operation_completed.png` - 投放操作完成
+- `quick_follow_up_clicked.png` - 快速跟进按钮点击
+- `follow_up_panel_configured.png` - 跟进面板配置完成
+- `quotation_tab_filled.png` - 报价单填写完成
+
+**公海业务流程截图：**
+- `public_sea_page_loaded.png` - 公海页面加载
+- `public_sea_customer_claim_completed.png` - 公海客户认领完成
+- `public_sea_search_by_id_result.png` - 公海搜索结果
+- `public_sea_track_clicked.png` - 公海跟踪操作
+
+**客户管理流程截图：**
+- `customer_private_sea_page_loaded.png` - 客户私海页面
+- `customer_public_sea_stage2_loaded.png` - 客户公海阶段2
+- `customer_complete_workflow_success.png` - 客户工作流完成
+- `customer_search_by_id_result.png` - 客户搜索结果
+
+**商机管理流程截图：**
+- `private_business_page_loaded.png` - 商机私海页面
+- `public_business_page_loaded.png` - 商机公海页面
+- `business_launch_dialog_completed.png` - 商机投放对话框
+- `first_business_launch_complete.png` - 首次商机投放完成
+
+**系统操作截图：**
+- `role_switch_fixed_v2_completed.png` - 角色切换完成
+- `ipipgo_tab_clicked.png` - IPI标签点击操作
 
 ## 🔧 配置说明
 
@@ -278,19 +332,40 @@ EXPLICIT_WAIT = 20         # 显式等待时间
 
 ### 新的模块化架构优势
 
-- **代码结构清晰**: 从700行单一文件拆分为多个专门模块
+- **代码结构清晰**: 从1560行单一文件拆分为多个专门模块
+- **业务逻辑分离**: 私海、公海、客户、商机等业务模块独立
 - **易于维护**: 每个模块专注特定功能
 - **代码重用**: 各模块可单独调用
 - **易于测试**: 可以单独测试每个功能
 - **扩展性强**: 可以轻松添加新功能模块
 
-### 模块说明
+### 核心模块说明
 
 - `crm_utils.py`: 工具函数（随机数据生成、浏览器初始化）
 - `crm_login.py`: SSO登录功能
 - `crm_role_switch.py`: 用户职位切换功能
-- `crm_private_sea.py`: 私海线索操作和快速跟进功能
+- `crm_private_sea_add.py`: 私海线索添加功能
+- `crm_private_sea_launch.py`: 私海线索投放功能
+- `crm_private_sea_follow_up.py`: 私海线索快速跟进功能
+- `crm_public_sea.py`: 公海线索管理功能
+- `crm_customer_private_sea.py`: 客户私海管理功能
+- `crm_customer_public_sea.py`: 客户公海管理功能
+- `crm_business_private_sea.py`: 商机私海管理功能
 - `crm_workflow.py`: 集成所有功能的完整工作流程
+
+### 业务流程模块化
+
+**私海线索管理：**
+- 线索添加 → 投放操作 → 快速跟进 → 跟进面板配置 → 报价单填写
+
+**公海线索管理：**
+- 线索搜索 → 线索认领 → 跟踪操作 → 状态更新
+
+**客户管理流程：**
+- 客户搜索 → 客户处理 → 状态跟踪 → 业务转化
+
+**商机管理流程：**
+- 商机创建 → 商机跟进 → 投放操作 → 状态管理
 
 ## 📝 编写测试用例
 
@@ -360,6 +435,10 @@ pytest --lf
 login_page.take_screenshot("debug_screenshot")
 ```
 
+### 5. 查看业务流程截图
+
+检查 `screenshots/` 目录中的截图文件，了解测试执行的每个关键步骤。
+
 ## 🔍 常见问题
 
 ### Q: 如何处理验证码？
@@ -374,6 +453,12 @@ A: 可以创建 `test_data` 目录，使用JSON或YAML文件存储测试数据�
 ### Q: 浏览器驱动下载失败怎么办？
 A: 框架使用 `webdriver-manager` 自动下载驱动，确保网络连接正常。
 
+### Q: 如何查看完整的业务流程执行情况？
+A: 检查 `screenshots/` 目录中的截图和 `crm_test.log` 日志文件。
+
+### Q: 新增的业务模块如何使用？
+A: 每个业务模块都可以独立使用，也可以通过 `main.py` 菜单选择对应功能。
+
 ## 📈 最佳实践
 
 1. **页面对象**: 每个页面创建对应的页面对象类
@@ -383,6 +468,28 @@ A: 框架使用 `webdriver-manager` 自动下载驱动，确保网络连接正�
 5. **日志**: 在关键步骤记录日志信息
 6. **截图**: 测试失败时自动截图便于调试
 7. **模块化**: 将功能拆分为独立模块，提高代码可维护性
+8. **业务流程**: 按照实际业务流程组织测试用例
+9. **错误处理**: 在关键操作中添加异常处理和重试机制
+
+## 🎯 项目亮点
+
+### 🏆 技术架构
+- **模块化设计**: 从1560行单体文件重构为多个专门模块
+- **完整业务覆盖**: 涵盖私海、公海、客户、商机等完整CRM业务
+- **自动化截图**: 关键流程节点自动截图，便于问题追踪
+- **向后兼容**: 新旧架构并存，平滑过渡
+
+### 🚀 业务功能
+- **线索管理**: 私海线索添加、投放、跟进全流程自动化
+- **客户管理**: 客户私海/公海处理，支持搜索、认领、跟踪
+- **商机管理**: 商机创建、跟进、投放等完整业务流程
+- **报价管理**: 自动化报价单填写和配置
+
+### 💡 用户体验
+- **简化界面**: 4个清晰的功能选择，操作简单直观
+- **完整日志**: 详细的执行日志和错误追踪
+- **可视化验证**: 每个关键步骤都有截图记录
+- **灵活使用**: 支持模块化调用和完整流程测试
 
 ## 🤝 贡献指南
 
@@ -400,3 +507,20 @@ MIT License
 
 - GitHub: [@sandogdog](https://github.com/sandogdog)
 - 项目地址: [https://github.com/sandogdog/CRM](https://github.com/sandogdog/CRM)
+
+---
+
+## 🎉 更新日志
+
+### v2.0.0 (最新版本)
+- ✨ 全面模块化重构，提升代码结构和可维护性
+- 🎯 新增完整的业务流程模块（私海、公海、客户、商机）
+- 📸 添加自动截图功能，覆盖所有关键业务节点
+- 🔄 保持向后兼容性，支持新旧架构并存
+- 📖 完善文档体系，提供详细的使用指南和最佳实践
+
+### v1.0.0
+- 🎯 初始版本发布
+- 🔐 基础登录和角色切换功能
+- 📝 私海线索基本操作功能
+- 🧪 传统Pytest测试框架支持

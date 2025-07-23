@@ -1193,7 +1193,7 @@ def handle_quotation_tab(driver):
         
         js_select_party_b_company = """
         // 查找并选择南京光年之内网络科技有限公司
-        var items = document.querySelectorAll('li.el-select-dropdown__item[data-v-786664d6]');
+        var items = document.querySelectorAll('li.el-select-dropdown__item');
         console.log('找到的乙方公司选项数量:', items.length);
         
         for (var i = 0; i < items.length; i++) {
@@ -1363,7 +1363,7 @@ def handle_quotation_tab(driver):
         
         js_select_basic_package = """
         // 查找并选择基础套餐
-        var items = document.querySelectorAll('li.el-select-dropdown__item[data-v-786664d6]');
+        var items = document.querySelectorAll('li.el-select-dropdown__item');
         console.log('找到的套餐类型选项数量:', items.length);
         
         for (var i = 0; i < items.length; i++) {
@@ -1431,7 +1431,7 @@ def handle_quotation_tab(driver):
         
         js_select_annual_package = """
         // 查找并选择年度套餐
-        var items = document.querySelectorAll('li.el-select-dropdown__item[data-v-786664d6]');
+        var items = document.querySelectorAll('li.el-select-dropdown__item');
         console.log('找到的收费项目选项数量:', items.length);
         
         for (var i = 0; i < items.length; i++) {

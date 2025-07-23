@@ -3,6 +3,8 @@ WebDriver管理器
 负责浏览器驱动的初始化、配置和清理
 """
 import logging
+import os
+import glob
 from selenium import webdriver
 from selenium.webdriver.chrome.service import Service as ChromeService
 from selenium.webdriver.firefox.service import Service as FirefoxService
@@ -10,9 +12,16 @@ from selenium.webdriver.edge.service import Service as EdgeService
 from selenium.webdriver.chrome.options import Options as ChromeOptions
 from selenium.webdriver.firefox.options import Options as FirefoxOptions
 from selenium.webdriver.edge.options import Options as EdgeOptions
-from webdriver_manager.chrome import ChromeDriverManager
-from webdriver_manager.firefox import GeckoDriverManager
-from webdriver_manager.microsoft import EdgeChromiumDriverManager
+
+# 尝试导入webdriver_manager，如果网络问题则使用离线模式
+try:
+    from webdriver_manager.chrome import ChromeDriverManager
+    from webdriver_manager.firefox import GeckoDriverManager
+    from webdriver_manager.microsoft import EdgeChromiumDriverManager
+    from webdriver_manager.core.utils import ChromeType
+    WEBDRIVER_MANAGER_AVAILABLE = True
+except ImportError:
+    WEBDRIVER_MANAGER_AVAILABLE = False
 
 from config.config import Config
 
@@ -69,6 +78,45 @@ class DriverManager:
             logger.error(f"WebDriver 初始化失败: {e}")
             raise
     
+    def _find_cached_edge_driver(self):
+        """查找缓存的Edge WebDriver"""
+        try:
+            # webdriver_manager默认缓存路径
+            cache_path = os.path.expanduser("~/.wdm/drivers/edgedriver/win64")
+            
+            if not os.path.exists(cache_path):
+                logger.warning("WebDriver缓存目录不存在")
+                return None
+            
+            # 查找所有版本目录
+            version_dirs = [d for d in os.listdir(cache_path) if os.path.isdir(os.path.join(cache_path, d))]
+            
+            if not version_dirs:
+                logger.warning("未找到缓存的WebDriver版本")
+                return None
+            
+            # 获取最新版本（按版本号排序）
+            latest_version = sorted(version_dirs, key=lambda x: [int(i) for i in x.split('.')], reverse=True)[0]
+            driver_dir = os.path.join(cache_path, latest_version)
+            
+            # 查找msedgedriver.exe
+            driver_path = os.path.join(driver_dir, "msedgedriver.exe")
+            if os.path.exists(driver_path):
+                logger.info(f"✅ 找到缓存的Edge WebDriver: {driver_path} (版本: {latest_version})")
+                return driver_path
+            
+            # 如果没有找到，尝试查找任何.exe文件
+            exe_files = glob.glob(os.path.join(driver_dir, "*.exe"))
+            if exe_files:
+                driver_path = exe_files[0]
+                logger.info(f"✅ 找到缓存的WebDriver: {driver_path} (版本: {latest_version})")
+                return driver_path
+                
+        except Exception as e:
+            logger.warning(f"查找缓存WebDriver时出错: {e}")
+        
+        return None
+    
     def _get_chrome_driver(self, headless):
         """获取Chrome驱动"""
         options = ChromeOptions()
@@ -92,8 +140,15 @@ class DriverManager:
         # 设置用户代理
         options.add_argument("--user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36")
         
-        service = ChromeService(ChromeDriverManager().install())
-        return webdriver.Chrome(service=service, options=options)
+        if WEBDRIVER_MANAGER_AVAILABLE:
+            try:
+                service = ChromeService(ChromeDriverManager().install())
+                return webdriver.Chrome(service=service, options=options)
+            except Exception as e:
+                logger.warning(f"使用webdriver_manager失败: {e}")
+        
+        # 尝试使用系统PATH中的chromedriver
+        return webdriver.Chrome(options=options)
     
     def _get_firefox_driver(self, headless):
         """获取Firefox驱动"""
@@ -106,8 +161,15 @@ class DriverManager:
         options.set_preference("dom.webnotifications.enabled", False)
         options.set_preference("media.volume_scale", "0.0")
         
-        service = FirefoxService(GeckoDriverManager().install())
-        return webdriver.Firefox(service=service, options=options)
+        if WEBDRIVER_MANAGER_AVAILABLE:
+            try:
+                service = FirefoxService(GeckoDriverManager().install())
+                return webdriver.Firefox(service=service, options=options)
+            except Exception as e:
+                logger.warning(f"使用webdriver_manager失败: {e}")
+        
+        # 尝试使用系统PATH中的geckodriver
+        return webdriver.Firefox(options=options)
     
     def _get_edge_driver(self, headless):
         """获取Edge驱动"""
@@ -121,8 +183,35 @@ class DriverManager:
         options.add_argument("--disable-dev-shm-usage")
         options.add_argument(f"--window-size={Config.WINDOW_SIZE}")
         
-        service = EdgeService(EdgeChromiumDriverManager().install())
-        return webdriver.Edge(service=service, options=options)
+        # 方法1: 先尝试使用缓存的WebDriver
+        cached_driver = self._find_cached_edge_driver()
+        if cached_driver:
+            try:
+                service = EdgeService(cached_driver)
+                return webdriver.Edge(service=service, options=options)
+            except Exception as e:
+                logger.warning(f"使用缓存WebDriver失败: {e}")
+        
+        # 方法2: 尝试使用webdriver_manager（可能会联网）
+        if WEBDRIVER_MANAGER_AVAILABLE:
+            try:
+                logger.info("尝试使用webdriver_manager获取WebDriver...")
+                service = EdgeService(EdgeChromiumDriverManager().install())
+                return webdriver.Edge(service=service, options=options)
+            except Exception as e:
+                logger.warning(f"webdriver_manager失败 (可能是网络问题): {e}")
+        
+        # 方法3: 尝试使用系统PATH中的msedgedriver
+        try:
+            logger.info("尝试使用系统PATH中的WebDriver...")
+            return webdriver.Edge(options=options)
+        except Exception as e:
+            logger.error("所有WebDriver获取方法都失败了")
+            logger.error("解决方案:")
+            logger.error("1. 检查网络连接")
+            logger.error("2. 手动下载WebDriver并放在项目drivers文件夹中")
+            logger.error("3. 将WebDriver添加到系统PATH环境变量")
+            raise Exception(f"无法获取Edge WebDriver: {e}")
     
     def _configure_driver(self):
         """配置WebDriver"""
