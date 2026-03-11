@@ -8,7 +8,7 @@ import logging
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
-from crm_utils import generate_random_phone, generate_random_suffix
+from crm_utils import generate_random_phone, generate_random_suffix, click_customer_management_menu
 
 # 配置日志
 logger = logging.getLogger(__name__)
@@ -28,27 +28,86 @@ def navigate_to_private_sea(driver):
         logger.info("🌊 开始导航到私海线索页面...")
         
         # 等待页面加载完成
-        time.sleep(3)
+        time.sleep(2)
         
-        # 点击私海线索菜单
-        logger.info("点击私海线索菜单...")
+        # 步骤1: 点击客户管理主菜单（前端更新后必须先点击）
+        logger.info("步骤1: 点击客户管理主菜单...")
+        if not click_customer_management_menu(driver):
+            logger.error("❌ 点击客户管理菜单失败")
+            # 截图调试
+            try:
+                driver.save_screenshot("screenshots/click_customer_management_error.png")
+                logger.info("📸 客户管理菜单点击失败截图已保存")
+            except:
+                pass
+            return False
         
-        # 使用已知有效的定位器
-        private_sea_menu = WebDriverWait(driver, 10).until(
-            EC.element_to_be_clickable((By.XPATH, "//li[contains(@class, 'el-menu-item') and contains(@base-path, '/customerManagement/clews/privateSea')]"))
-        )
-        private_sea_menu.click()
-        logger.info("✅ 私海线索菜单已点击")
+        # 步骤2: 点击私海线索菜单
+        logger.info("步骤2: 点击私海线索菜单...")
+        
+        # 使用JavaScript查找并点击私海线索菜单
+        js_click_private_sea = """
+        // 查找私海线索菜单项
+        var menuItems = document.querySelectorAll('li.el-menu-item');
+        console.log('找到的菜单项数量:', menuItems.length);
+        
+        for (var i = 0; i < menuItems.length; i++) {
+            var item = menuItems[i];
+            var basePath = item.getAttribute('base-path');
+            var span = item.querySelector('span');
+            
+            console.log('菜单项', i, '- base-path:', basePath, '- text:', span ? span.textContent.trim() : 'N/A');
+            
+            if (basePath && basePath.includes('/customerManagement/clews/privateSea')) {
+                console.log('找到私海线索菜单，准备点击');
+                item.click();
+                return true;
+            }
+        }
+        
+        console.log('未找到私海线索菜单');
+        return false;
+        """
+        
+        if driver.execute_script(js_click_private_sea):
+            logger.info("✅ 私海线索菜单已点击")
+        else:
+            logger.error("❌ 未找到私海线索菜单")
+            # 截图调试
+            try:
+                driver.save_screenshot("screenshots/private_sea_menu_not_found.png")
+                logger.info("📸 私海线索菜单未找到截图已保存")
+            except:
+                pass
+            return False
         
         # 等待页面跳转和加载
         time.sleep(3)
         
-        # 截图确认
-        driver.save_screenshot("screenshots/private_sea_page_loaded.png")
-        logger.info("📸 私海线索页面加载截图已保存")
+        # 验证是否成功进入私海线索页面
+        js_verify_page = """
+        var currentUrl = window.location.href;
+        return currentUrl.includes('/customerManagement/clews/privateSea') || 
+               currentUrl.includes('privateSea');
+        """
         
-        logger.info("🎉 私海线索页面导航完成！")
-        return True
+        if driver.execute_script(js_verify_page):
+            logger.info("✅ 已成功进入私海线索页面")
+            
+            # 截图确认
+            driver.save_screenshot("screenshots/private_sea_page_loaded.png")
+            logger.info("📸 私海线索页面加载截图已保存")
+            
+            logger.info("🎉 私海线索页面导航完成！")
+            return True
+        else:
+            logger.error("❌ 未能成功进入私海线索页面")
+            try:
+                driver.save_screenshot("screenshots/private_sea_page_verify_failed.png")
+                logger.info("📸 页面验证失败截图已保存")
+            except:
+                pass
+            return False
         
     except Exception as e:
         logger.error(f"导航到私海线索页面异常: {e}")

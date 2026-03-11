@@ -171,6 +171,35 @@ class DriverManager:
         # 尝试使用系统PATH中的geckodriver
         return webdriver.Firefox(options=options)
     
+    def _find_local_edge_driver(self):
+        """查找项目drivers文件夹中的WebDriver"""
+        try:
+            # 检查项目根目录的drivers文件夹
+            project_root = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+            drivers_folder = os.path.join(project_root, "drivers")
+            
+            if not os.path.exists(drivers_folder):
+                logger.info("项目drivers文件夹不存在")
+                return None
+            
+            # 查找msedgedriver.exe
+            driver_path = os.path.join(drivers_folder, "msedgedriver.exe")
+            if os.path.exists(driver_path):
+                logger.info(f"✅ 找到本地WebDriver: {driver_path}")
+                return driver_path
+            
+            # 查找任何.exe文件
+            exe_files = glob.glob(os.path.join(drivers_folder, "*.exe"))
+            if exe_files:
+                driver_path = exe_files[0]
+                logger.info(f"✅ 找到本地WebDriver: {driver_path}")
+                return driver_path
+                
+        except Exception as e:
+            logger.warning(f"查找本地WebDriver时出错: {e}")
+        
+        return None
+
     def _get_edge_driver(self, headless):
         """获取Edge驱动"""
         options = EdgeOptions()
@@ -183,16 +212,34 @@ class DriverManager:
         options.add_argument("--disable-dev-shm-usage")
         options.add_argument(f"--window-size={Config.WINDOW_SIZE}")
         
-        # 方法1: 先尝试使用缓存的WebDriver
+        # 方法1: 优先使用项目drivers文件夹中的WebDriver
+        local_driver = self._find_local_edge_driver()
+        if local_driver:
+            try:
+                logger.info("尝试使用项目drivers文件夹中的WebDriver...")
+                service = EdgeService(local_driver)
+                return webdriver.Edge(service=service, options=options)
+            except Exception as e:
+                logger.warning(f"使用本地WebDriver失败: {e}")
+        
+        # 方法2: 尝试使用缓存的WebDriver
         cached_driver = self._find_cached_edge_driver()
         if cached_driver:
             try:
+                logger.info("尝试使用缓存的WebDriver...")
                 service = EdgeService(cached_driver)
                 return webdriver.Edge(service=service, options=options)
             except Exception as e:
                 logger.warning(f"使用缓存WebDriver失败: {e}")
         
-        # 方法2: 尝试使用webdriver_manager（可能会联网）
+        # 方法3: 尝试使用系统PATH中的msedgedriver
+        try:
+            logger.info("尝试使用系统PATH中的WebDriver...")
+            return webdriver.Edge(options=options)
+        except Exception as e:
+            logger.warning(f"使用系统PATH中的WebDriver失败: {e}")
+        
+        # 方法4: 最后尝试使用webdriver_manager（可能会联网）
         if WEBDRIVER_MANAGER_AVAILABLE:
             try:
                 logger.info("尝试使用webdriver_manager获取WebDriver...")
@@ -201,17 +248,15 @@ class DriverManager:
             except Exception as e:
                 logger.warning(f"webdriver_manager失败 (可能是网络问题): {e}")
         
-        # 方法3: 尝试使用系统PATH中的msedgedriver
-        try:
-            logger.info("尝试使用系统PATH中的WebDriver...")
-            return webdriver.Edge(options=options)
-        except Exception as e:
-            logger.error("所有WebDriver获取方法都失败了")
-            logger.error("解决方案:")
-            logger.error("1. 检查网络连接")
-            logger.error("2. 手动下载WebDriver并放在项目drivers文件夹中")
-            logger.error("3. 将WebDriver添加到系统PATH环境变量")
-            raise Exception(f"无法获取Edge WebDriver: {e}")
+        # 所有方法都失败了
+        logger.error("所有WebDriver获取方法都失败了")
+        logger.error("解决方案:")
+        logger.error("1. 手动下载WebDriver并放在项目drivers文件夹中")
+        logger.error("   - 下载地址: https://developer.microsoft.com/en-us/microsoft-edge/tools/webdriver/")
+        logger.error("   - 将msedgedriver.exe放到项目的drivers文件夹")
+        logger.error("2. 检查网络连接")
+        logger.error("3. 将WebDriver添加到系统PATH环境变量")
+        raise Exception(f"无法获取Edge WebDriver: 请手动下载WebDriver到drivers文件夹")
     
     def _configure_driver(self):
         """配置WebDriver"""

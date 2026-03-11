@@ -8,6 +8,7 @@ import logging
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
+from crm_utils import click_customer_management_menu
 
 # 配置日志
 logger = logging.getLogger(__name__)
@@ -29,7 +30,11 @@ def navigate_to_public_sea(driver):
         # 等待页面加载完成
         time.sleep(2)
         
-        # 点击公海线索菜单
+        # 步骤1: 点击客户管理主菜单（前端更新后需要）
+        if not click_customer_management_menu(driver):
+            logger.warning("⚠️ 点击客户管理菜单失败，尝试继续...")
+        
+        # 步骤2: 点击公海线索菜单
         logger.info("点击公海线索菜单...")
         
         js_click_public_sea_menu = """
@@ -103,7 +108,7 @@ def click_track_button_for_clue(driver, clue_name_keyword="私海线索-ui自动
         # 等待表格加载完成
         time.sleep(3)
         
-        # 查找并点击跟踪按钮
+        # 查找并点击跟踪按钮 - 修复版：不依赖data-v属性
         js_click_track_button = f"""
         // 查找包含指定关键字的线索行并点击跟踪按钮
         var rows = document.querySelectorAll('tr.el-table__row');
@@ -113,33 +118,40 @@ def click_track_button_for_clue(driver, clue_name_keyword="私海线索-ui自动
             var row = rows[i];
             var cells = row.querySelectorAll('td');
             
-            // 查找线索名称列（通常是第2列）
+            // 查找线索名称列 - 不依赖data-v属性，直接查找所有span
             for (var j = 0; j < cells.length; j++) {{
                 var cell = cells[j];
-                var spans = cell.querySelectorAll('span[data-v-2fc6bf6a]');
+                var allSpans = cell.querySelectorAll('span');
                 
-                for (var k = 0; k < spans.length; k++) {{
-                    var span = spans[k];
-                    if (span.textContent.includes('{clue_name_keyword}')) {{
-                        console.log('找到匹配的线索:', span.textContent);
+                for (var k = 0; k < allSpans.length; k++) {{
+                    var span = allSpans[k];
+                    var spanText = span.textContent.trim();
+                    
+                    if (spanText.includes('{clue_name_keyword}')) {{
+                        console.log('找到匹配的线索:', spanText);
                         
                         // 在当前行查找跟踪按钮
-                        var trackButtons = row.querySelectorAll('button.el-button--primary.el-button--mini');
-                        for (var m = 0; m < trackButtons.length; m++) {{
-                            var button = trackButtons[m];
+                        var allButtons = row.querySelectorAll('button');
+                        console.log('当前行按钮数量:', allButtons.length);
+                        
+                        for (var m = 0; m < allButtons.length; m++) {{
+                            var button = allButtons[m];
                             var buttonSpan = button.querySelector('span');
-                            if (buttonSpan && buttonSpan.textContent.trim() === '跟踪') {{
+                            if (buttonSpan && buttonSpan.textContent.trim() === '跟踪' &&
+                                button.offsetWidth > 0 && button.offsetHeight > 0) {{
                                 console.log('找到跟踪按钮，准备点击');
                                 button.click();
                                 return true;
                             }}
                         }}
+                        
+                        console.log('找到线索但未找到跟踪按钮');
                     }}
                 }}
             }}
         }}
         
-        console.log('未找到匹配的线索或跟踪按钮');
+        console.log('未找到匹配的线索');
         return false;
         """
         

@@ -9,6 +9,7 @@ from selenium.webdriver.common.by import By
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.common.action_chains import ActionChains
+from crm_utils import click_customer_management_menu
 
 # 配置日志
 logging.basicConfig(
@@ -37,6 +38,10 @@ def navigate_to_customer_private_sea(driver):
         
         # 等待页面加载完成
         time.sleep(2)
+        
+        # 步骤0: 点击客户管理主菜单（前端更新后需要）
+        if not click_customer_management_menu(driver):
+            logger.warning("⚠️ 点击客户管理菜单失败，尝试继续...")
         
         # 步骤1: 点击客户主菜单（展开子菜单）
         logger.info("1. 点击客户主菜单...")

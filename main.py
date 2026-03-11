@@ -821,7 +821,9 @@ def main():
         print("💡 按Ctrl+C可以随时中断测试")
         print("=" * 80)
         
-        input("按回车键开始执行完整流程...")
+        # 自动开始执行，无需手动确认
+        print("🚀 正在启动完整CRM业务流程测试...")
+        time.sleep(1)  # 给用户1秒时间看到启动信息
         
         # 执行完整流程
         success = test_complete_crm_workflow()

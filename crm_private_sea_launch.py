@@ -30,8 +30,10 @@ def handle_launch_operation(driver):
         logger.info("1. 点击投放按钮...")
         
         js_click_launch_button = """
-        // 查找投放按钮
-        var buttons = document.querySelectorAll('button[data-v-f2b64f12].el-button.el-button--primary.el-button--mini');
+        // 查找投放按钮 - 修复版：不依赖data-v属性，点击列表第一个投放按钮
+        var buttons = document.querySelectorAll('button.el-button.el-button--primary.el-button--mini');
+        console.log('找到的按钮数量:', buttons.length);
+        
         for (var i = 0; i < buttons.length; i++) {
             var btn = buttons[i];
             var span = btn.querySelector('span');
@@ -39,11 +41,31 @@ def handle_launch_operation(driver):
                 btn.offsetWidth > 0 && 
                 btn.offsetHeight > 0 &&
                 !btn.disabled) {
-                console.log('找到投放按钮，准备点击');
+                console.log('找到投放按钮，准备点击第一个，索引:', i);
                 btn.click();
                 return true;
             }
         }
+        
+        console.log('未找到投放按钮，尝试备用方案...');
+        // 备用方案：通过更宽泛的选择器查找
+        var allButtons = document.querySelectorAll('button');
+        for (var j = 0; j < allButtons.length; j++) {
+            var button = allButtons[j];
+            var span = button.querySelector('span');
+            if (span && span.textContent.trim() === '投放' && 
+                button.className.includes('el-button') &&
+                button.className.includes('el-button--primary') &&
+                button.className.includes('el-button--mini') &&
+                button.offsetWidth > 0 && 
+                button.offsetHeight > 0 &&
+                !button.disabled) {
+                console.log('备用方案找到投放按钮，准备点击，索引:', j);
+                button.click();
+                return true;
+            }
+        }
+        
         return false;
         """
         

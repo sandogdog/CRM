@@ -1,0 +1,11 @@
+# Byte-compiled
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Logs
+*.log
+
+# Optional: 本地配置/环境（如有）
+.env
+.env.local

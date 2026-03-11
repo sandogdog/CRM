@@ -11,6 +11,7 @@ import logging
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
+from crm_utils import click_customer_management_menu
 
 # 配置日志
 logging.basicConfig(
@@ -185,106 +186,12 @@ def test_customer_public_sea_claim(driver):
     try:
         logger.info("🚀 开始客户公海领取测试...")
         
-        # 第一步：点击客户管理主菜单
+        # 第一步：点击客户管理主菜单（使用通用辅助函数）
         logger.info("📋 步骤1: 点击客户管理主菜单...")
         
-        js_click_customer_menu = """
-        // 增强的客户管理菜单查找逻辑
-        var customerMenu = null;
-        
-        // 方法1: 查找标准的子菜单结构
-        var menuItems = document.querySelectorAll('li.el-submenu');
-        console.log('找到子菜单数量:', menuItems.length);
-        
-        for (var i = 0; i < menuItems.length; i++) {
-            var menuItem = menuItems[i];
-            var titleDiv = menuItem.querySelector('div.el-submenu__title');
-            if (titleDiv) {
-                var span = titleDiv.querySelector('span');
-                var titleText = span ? span.textContent.trim() : titleDiv.textContent.trim();
-                console.log('菜单项', i, '文本:', titleText);
-                
-                if (titleText === '客户管理') {
-                    console.log('找到客户管理菜单（方法1）');
-                    customerMenu = titleDiv;
-                    break;
-                }
-            }
-        }
-        
-        // 方法2: 如果方法1失败，尝试更广泛的查找
-        if (!customerMenu) {
-            console.log('方法1失败，尝试方法2');
-            var allElements = document.querySelectorAll('*');
-            for (var j = 0; j < allElements.length; j++) {
-                var element = allElements[j];
-                if (element.textContent && element.textContent.trim() === '客户管理') {
-                    // 检查是否是菜单相关的元素
-                    var parent = element.closest('li.el-submenu');
-                    if (parent) {
-                        var titleDiv = parent.querySelector('div.el-submenu__title');
-                        if (titleDiv) {
-                            console.log('找到客户管理菜单（方法2）');
-                            customerMenu = titleDiv;
-                            break;
-                        }
-                    }
-                }
-            }
-        }
-        
-        // 方法3: 如果还是找不到，检查菜单是否已经展开
-        if (!customerMenu) {
-            console.log('方法2失败，检查菜单状态');
-            var expandedMenus = document.querySelectorAll('li.el-submenu.is-opened');
-            console.log('已展开的菜单数量:', expandedMenus.length);
-            
-            for (var k = 0; k < expandedMenus.length; k++) {
-                var expandedMenu = expandedMenus[k];
-                var titleDiv = expandedMenu.querySelector('div.el-submenu__title');
-                if (titleDiv) {
-                    var span = titleDiv.querySelector('span');
-                    var titleText = span ? span.textContent.trim() : titleDiv.textContent.trim();
-                    console.log('已展开菜单', k, '文本:', titleText);
-                    
-                    if (titleText === '客户管理') {
-                        console.log('找到客户管理菜单（方法3-已展开）');
-                        customerMenu = titleDiv;
-                        break;
-                    }
-                }
-            }
-        }
-        
-        if (!customerMenu) {
-            console.log('所有方法都失败，未找到客户管理菜单');
-            return { success: false, error: '未找到客户管理菜单' };
-        }
-        
-        // 检查菜单是否已经展开
-        var parentLi = customerMenu.closest('li.el-submenu');
-        var isExpanded = parentLi && parentLi.classList.contains('is-opened');
-        console.log('客户管理菜单是否已展开:', isExpanded);
-        
-        if (!isExpanded) {
-            // 点击客户管理菜单
-            customerMenu.click();
-            console.log('客户管理菜单已点击');
-        } else {
-            console.log('客户管理菜单已展开，无需点击');
-        }
-        
-        return { success: true };
-        """
-        
-        menu_result = driver.execute_script(js_click_customer_menu)
-        
-        if not menu_result or not menu_result.get('success'):
+        if not click_customer_management_menu(driver):
             logger.error("❌ 点击客户管理菜单失败")
             return False
-        
-        logger.info("✅ 客户管理菜单点击成功")
-        time.sleep(2)  # 等待子菜单展开
         
         # 第二步：点击公海子菜单
         logger.info("📋 步骤2: 点击公海子菜单...")
