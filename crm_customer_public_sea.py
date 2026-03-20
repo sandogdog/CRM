@@ -793,6 +793,27 @@ def _claim_customer_from_table(driver):
     
     logger.info("✅ 领取客户菜单项点击成功")
     
+    # 领取后可能出现第二个弹窗，需点击「一并领取」按钮
+    time.sleep(2)
+    try:
+        yibian_buttons = driver.find_elements(By.XPATH, "//button[.//span[text()='一并领取']]")
+        if not yibian_buttons:
+            yibian_buttons = driver.find_elements(By.XPATH, "//button[contains(text(), '一并领取')]")
+        if not yibian_buttons:
+            all_buttons = driver.find_elements(By.TAG_NAME, "button")
+            yibian_buttons = [b for b in all_buttons if b.is_displayed() and "一并领取" in (b.text or "")]
+        if yibian_buttons:
+            btn = yibian_buttons[0]
+            driver.execute_script("arguments[0].scrollIntoView(true);", btn)
+            time.sleep(0.5)
+            btn.click()
+            logger.info("✅ 已点击「一并领取」按钮")
+            time.sleep(2)
+        else:
+            logger.info("未发现「一并领取」弹窗，按原流程继续")
+    except Exception as e_yibian:
+        logger.warning(f"点击「一并领取」时出错（可能无此弹窗）: {e_yibian}")
+    
     # 等待通知弹窗显示和消失（3秒）
     logger.info("⏳ 等待领取成功通知弹窗（3秒）...")
     time.sleep(3)

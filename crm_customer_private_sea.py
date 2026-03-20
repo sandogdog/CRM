@@ -334,15 +334,36 @@ def handle_customer_public_sea_dialog(driver):
                                 logger.error(f"JavaScript点击也失败: {e3}")
                     
                     if success:
+                        # 等待第一个弹窗提交后，可能出现第二个弹窗（一并更改）
+                        time.sleep(2)
+                        
+                        # 第二个弹窗：点击「一并更改」按钮
+                        try:
+                            yibian_buttons = driver.find_elements(By.XPATH, "//button[.//span[text()='一并更改']]")
+                            if not yibian_buttons:
+                                yibian_buttons = driver.find_elements(By.XPATH, "//button[contains(text(), '一并更改')]")
+                            if not yibian_buttons:
+                                all_buttons = driver.find_elements(By.TAG_NAME, "button")
+                                yibian_buttons = [b for b in all_buttons if b.is_displayed() and "一并更改" in (b.text or "")]
+                            if yibian_buttons:
+                                btn = yibian_buttons[0]
+                                driver.execute_script("arguments[0].scrollIntoView(true);", btn)
+                                time.sleep(0.5)
+                                btn.click()
+                                logger.info("✅ 已点击「一并更改」按钮")
+                                time.sleep(3)
+                            else:
+                                logger.info("未发现「一并更改」弹窗，按单弹窗流程继续")
+                        except Exception as e_yibian:
+                            logger.warning(f"点击「一并更改」时出错（可能无此弹窗）: {e_yibian}")
+                        
                         # 等待弹窗关闭
-                        time.sleep(5)
+                        time.sleep(2)
                         
                         # 验证弹窗是否关闭
                         try:
-                            # 检查弹窗是否还存在
                             remaining_dialogs = driver.find_elements(By.CSS_SELECTOR, ".el-dialog, .el-message-box, [role='dialog']")
                             visible_dialogs = [d for d in remaining_dialogs if d.is_displayed()]
-                            
                             if len(visible_dialogs) == 0:
                                 logger.info("✅ 弹窗已成功关闭！")
                             else:
